@@ -13,7 +13,7 @@ import "./Base64.sol";
 
 // We inherit the contract we imported. This means we'll have access
 // to the inherited contract's methods.
-contract myNFT is ERC721URIStorage {
+contract MyNFT is ERC721URIStorage {
     // Magic given to me by OpenZeppelin to help us keep track of tokenIds.
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
@@ -35,8 +35,13 @@ contract myNFT is ERC721URIStorage {
         console.log("This is my NFT contract. Noiceeeee!");
     }
 
+    modifier tokenExists(uint256 tokenId) {
+        require(_exists(tokenId));
+        _;
+    }
+
     // I create a function to randomly pick a word from each array.
-    function pickRandomFirstWord(uint256 tokenId) public view returns (string memory) {
+    function pickRandomFirstWord(uint256 tokenId) public view tokenExists(tokenId) returns (string memory) {        
         // I seed the random generator. More on this in the lesson. 
         uint256 rand = random(string(abi.encodePacked("FIRST_WORD", Strings.toString(tokenId))));
         // Squash the # between 0 and the length of the array to avoid going out of bounds.
@@ -44,21 +49,25 @@ contract myNFT is ERC721URIStorage {
         return firstWords[rand];
     }
 
-    function pickRandomSecondWord(uint256 tokenId) public view returns (string memory) {
+    // select random value from "secondWords" using hashed "tokenId"
+    function pickRandomSecondWord(uint256 tokenId) public view tokenExists(tokenId) returns (string memory) {
         uint256 rand = random(string(abi.encodePacked("SECOND_WORD", Strings.toString(tokenId))));
         rand = rand % secondWords.length;
         return secondWords[rand];
     }
 
-    function pickRandomThirdWord(uint256 tokenId) public view returns (string memory) {
+    // select random value from "thirdWords" using hashed "tokenId"
+    function pickRandomThirdWord(uint256 tokenId) public view tokenExists(tokenId) returns (string memory) {
         uint256 rand = random(string(abi.encodePacked("THIRD_WORD", Strings.toString(tokenId))));
         rand = rand % thirdWords.length;
         return thirdWords[rand];
     }
 
+    // return random number using "input" as seed
     function random(string memory input) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(input)));
     }
+
 
     // A function user will hit to get their NFT.
     function makeNFT() public {
@@ -96,6 +105,7 @@ contract myNFT is ERC721URIStorage {
             abi.encodePacked("data:application/json;base64,", json)
         );
 
+        console.log("View token live");
         console.log("\n--------------------");
         console.log(
             string(
@@ -107,6 +117,7 @@ contract myNFT is ERC721URIStorage {
         );
         console.log("--------------------\n");
 
+        console.log("Token URI");
         console.log("\n--------------------");
         console.log(finalTokenUri);
         console.log("--------------------\n");
@@ -124,4 +135,4 @@ contract myNFT is ERC721URIStorage {
 
         emit NewNFTMinted(msg.sender, newItemId);
     }
-}
+}   
